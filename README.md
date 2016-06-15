@@ -3,7 +3,7 @@ Hand-made userscripts I use daily.
 
 ### aze
 Use it to share current web page to your phone through a QR code reader.
-Just press 'A', 'Z' and 'E' consecutively, in that order, in a short amount of time to display the QR code.
+Just press 'A', 'Z' and 'E' consecutively, in that order, in a short amount of time to [display the QR code](https://davidshimjs.github.com/qrcodejs).
 'A', 'Z' and 'E' are the first three letters of the French keyboard.
 
 [Install](https://github.com/h0d/userscripts/raw/master/script.aze.user.js)
