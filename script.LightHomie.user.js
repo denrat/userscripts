@@ -1,19 +1,13 @@
 // ==UserScript==
 // @name         LightHomie
-// @version      0.4
-// @description  Turn off the lights... better
+// @version      0.5
+// @namespace    https://github.com/h0d
+// @description  Turn Off The Lights... better
 // @author       SergeiBrown
-// @match        http*://www.youtube.com/watch*
+// @match        http*://www.youtube.com/*
 // @grant        none
 // @run-at       document-end
 // ==/UserScript==
-
-/********
- *
- * TODO:
- * / None
- *
- ********/
 
 /********
  *
@@ -21,113 +15,179 @@
  *
  * SUMMARY:
  *
- *   I. Global variables
- *  II. Global functions
- * III. Integration in page
- *  IV. Events and trigger
+ *    I. Manipulated Elements
+ *   II. Layer Style
+ *  III. Layer Manipulation
+ *   IV. Topbar Style
+ *    V. Topbar Manipulation
+ *   VI. pushState() Management
+ *  VII. Events Listeners
+ * VIII. On Load
  *
  ********/
 
-/*******
+/********
  *
- *   I. Global variables
+ * Manipulated Elements
  *
- *******/
+ ********/
 
 var layer = document.createElement("div");
+document.body.appendChild(layer);
 var vid = document.getElementsByTagName("video")[0];
 var moviePlayer = document.getElementById("movie_player");
 var topbar = document.getElementById("yt-masthead-container");
 
 
-/*******
+/********
  *
- *  II. Global functions
+ * Layer Style
  *
- *******/
-
-// for debug convenience
-function clog (txt) {
-    console.log("LightHomie: " + txt);
-}
-
-// layer manipulation
-var layerTimeout, opacityTimeout;
-var reduceZIndex = function () { layer.style.zIndex = -1; };
-var setOpactToZero = function () { layer.style.opacity = 0; };
-
-function showLayer () {
-    if (!vid.paused) {
-        // apply new style to layer
-        layer.style.zIndex = 2;
-        layer.style.opacity = 0.7;
-
-        // apply new style to section below vid
-        /*content.style = contentBasicStyle +
-            "-webkit-filter: blur(.4px) grayscale(.8); " +
-            "-moz-filter: blur(.4px) grayscale(.8); " +
-            "filter: blur(.4px) grayscale(.8);";*/
-
-        if (layerTimeout !== null) {
-            window.clearTimeout(layerTimeout);
-            layerTimeout = null;
-        }
-        if (opacityTimeout !== null) {
-            window.clearTimeout(opacityTimeout);
-            opacityTimeout = null;
-        }
-    }
-}
-function hideLayer () {
-    if (vid.paused) {
-        var opacityChangeTime = 1;
-        if (vid.ended) { opacityChangeTime = 4000; }
-
-        // section below vid included
-        opacityTimeout = window.setTimeout(setOpactToZero, opacityChangeTime);
-        layerTimeout = window.setTimeout(reduceZIndex, 2000 + opacityChangeTime);
-    }
-}
-
-
-/*******
- *
- * III. Integration in page
- *
- *******/
-
-topbar.style.backgroundColor = "rgba(255, 255, 255, .4)";
-topbar.style.borderBottomColor = "rgba(200, 200, 200, .55)";
+ ********/
 
 layer.id = "lighthomie-layer";
+
+var shownLayerOpacity = 0.7;
+var shownLayerZIndex = 2;
+
+var hiddenLayerOpacity = 0;
+var hiddenLayerZIndex = -1;
+
 layer.style =
     "position: fixed; " +
     "top: 0px; left: 0px; " +
     "height: 100%; width: 100%; " +
     "background-color: black; " +
-    "opacity: 0; " +
-    "z-index: 2; " +
+    "opacity: " + hiddenLayerOpacity + "; " +
+    "z-index: " + hiddenLayerZIndex + "; " +
     "display: block; " +
     "transition: opacity .9s ease-in-out 0.1s;";
 
-document.body.appendChild(layer);
 
-
-/*******
+/********
  *
- *  IV. Events and trigger
+ * Layer Manipulation
  *
- *******/
+ ********/
 
-// vid is played
-vid.addEventListener('playing', showLayer);
+var layerClicked = false;
+var zIndexTimeout, opacityTimeout;
+var layerClickedTimeout;
+function setOpacityToZero () { layer.style.opacity = hiddenLayerOpacity; }
+function reduceZIndex () { layer.style.zIndex = hiddenLayerZIndex; }
 
-// vid is paused (or ended, which is managed through hideLayer())
-vid.addEventListener('pause', hideLayer);
 
-// layer is clicked
-layer.addEventListener('click', hideLayer);
+function showLayer () {
+    if (!layerClicked) {
+        layer.style.opacity = shownLayerOpacity;
+        layer.style.zIndex = shownLayerZIndex;
+    }
+}
+function tryToShowLayer () {
+    if (document.body.scrollTop === 0) {
+        layerClicked = false;
+        window.clearTimeout(layerClickedTimeout);
+        showLayer();
+    } else {
+        window.clearTimeout(layerClickedTimeout);
+        layerClickedTimeout = window.setTimeout(tryToShowLayer, 1000);
+    }
+}
 
-// trigger
+function hideLayer () {
+    if (layerClicked) {
+        layerClickedTimeout = window.setTimeout(tryToShowLayer, 1000);
+    }
+
+    var changeTime = 0;
+    if (vid.ended) changeTime = 4000;
+
+    opacityTimeout = window.setTimeout(setOpacityToZero, changeTime);
+    zIndexTimeout = window.setTimeout(reduceZIndex, 1000 + changeTime);
+}
+
+
+/********
+ *
+ * Topbar Style
+ *
+ ********/
+
+var modTopbarBackgroundColor = "rgba(255, 255, 255, .4)";
+var modTopbarBorderBottomColor = "rgba(232, 232, 232, .55)";
+
+var origTopbarBackgroundColor = "rgba(255, 255, 255, 1)";
+var origTopbarBorderBottomColor = "rgba(232, 232, 232, 1)";
+
+topbar.style.transition = "all 1s ease-in-out";
+
+
+/********
+ *
+ * Topbar Manipulation
+ *
+ ********/
+
+function setTopbarOriginalState () {
+    topbar.style.backgroundColor = origTopbarBackgroundColor;
+    topbar.style.borderBottomColor = origTopbarBorderBottomColor;
+}
+function setTopbarModifiedState () {
+    topbar.style.backgroundColor = modTopbarBackgroundColor;
+    topbar.style.borderBottomColor = modTopbarBorderBottomColor;
+}
+
+
+/********
+ *
+ * pushState() Management
+ *
+ ********/
+
+function authorizeFromUrl () {
+    if (document.location.pathname == "/watch") {
+        layer.style.display = "block";
+        setTopbarModifiedState();
+    }
+    else {
+        layer.style.display = "none";
+        setTopbarOriginalState();
+    }
+}
+
+
+/********
+ *
+ * Events Listeners
+ *
+ ********/
+
+document.addEventListener(
+    "popstate",
+    authorizeFromUrl);
+
+vid.addEventListener(
+    'playing',
+    showLayer);
+
+vid.addEventListener(
+    'pause',
+    hideLayer);
+
+layer.addEventListener(
+    'click',
+    function () {
+        layerClicked = true;
+        hideLayer();
+    });
+
+/********
+ *
+ * On Load
+ *
+ ********/
+
+console.log("LightHomie started");
+
 moviePlayer.focus();
-clog("Started");
+authorizeFromUrl();
