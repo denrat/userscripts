@@ -3,7 +3,7 @@
 // @version      0.5
 // @namespace    https://github.com/h0d
 // @description  Turn Off The Lights... better
-// @author       SergeiBrown
+// @author       h0d
 // @match        http*://www.youtube.com/*
 // @grant        none
 // @run-at       document-end
