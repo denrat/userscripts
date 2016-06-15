@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Oasis.Sandstorm interface hider
 // @version      0.1
-// @description  try to take over the world!
-// @author       You
+// @namespace    https://github.com/h0d
+// @description  Hide Oasis's interface when you don't use it
+// @author       h0d
 // @match        https://oasis.sandstorm.io/grain/*
 // @grant        none
 // @run-at       document-idle
