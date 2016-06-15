@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         aze
 // @version      0.1
+// @namespace    https://github.com/h0d
 // @description  enter something useful
-// @author       h0g
+// @author       h0d
 // @include      http://*
 // @include      https://*
 // @require      https://davidshimjs.github.com/qrcodejs/qrcode.min.js
